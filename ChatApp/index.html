@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>GMI Code Camp Node Chat Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap is cool and VS13 has awesome support for it!-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+            body .container {
+                min-height: 100%;
+                margin-bottom: -50px;
+            }
+
+        #messages {
+            margin-bottom: 70px;
+        }
+
+         #messages li:nth-child(odd) { background: #eee; }
+         #messages li {overflow-wrap: break-word;}
+
+        .bottom-text-box {
+            z-index: 20;
+            position: fixed;
+            bottom: 0;
+            height: 75px;
+            padding: 20px;
+            background: #000;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <ul id="messages" class="list-group"></ul>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-text-box">
+        <form>
+            <div class="row">
+                <div class="col-xs-9">
+                    <input class="form-control " id="msgArea" autocomplete="off" />
+                </div>
+                <div class="col-xs-2">
+                    <button class="btn btn-primary" type="submit">Send</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+
+        $(function ($) {
+            var socket = io();
+            $('form').submit(function () {
+                if ($('#msgArea').val().length) {
+                    socket.emit('message-sent', $('#msgArea').val());
+                    $('#msgArea').val('');
+                }
+                return false;
+            });
+            socket.on('message-received', function (msg) {
+                $('#messages').append($('<li>').addClass('list-group-item').text(msg));
+                $("html, body").animate({ scrollTop: $(document).height() }, 250);
+            });
+        });
+    </script>
+</body>
+</html>
