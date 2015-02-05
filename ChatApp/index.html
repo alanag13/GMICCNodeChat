@@ -37,7 +37,6 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
@@ -57,13 +56,15 @@
             </div>
         </form>
     </div>
-
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
-
         $(function ($) {
+            //instantiate the socket. This emits messages to the server
+            //and listens for events emited by it.
             var socket = io();
+
+            //send a message to the node server
             $('form').submit(function () {
                 if ($('#msgArea').val().length) {
                     socket.emit('message-sent', $('#msgArea').val());
@@ -71,6 +72,8 @@
                 }
                 return false;
             });
+
+            //receive a message from the node server and post it to the dom
             socket.on('message-received', function (msg) {
                 $('#messages').append($('<li>').addClass('list-group-item').text(msg));
                 $("html, body").animate({ scrollTop: $(document).height() }, 250);
