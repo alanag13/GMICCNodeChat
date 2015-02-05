@@ -37,4 +37,4 @@ ChatApp.Cookies = (function () {
         getCookie : getCookie,
         checkCookie : checkCookie
     }
-});
+}());

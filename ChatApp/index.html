@@ -8,6 +8,7 @@
     <!-- Bootstrap is cool and VS13 has awesome support for it!-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -40,15 +41,17 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
-                <ul id="messages" class="list-group"></ul>
+                <ul id="messages" data-bind="foreach: messages" class="list-group">
+                    <li class="list-group-item" data-bind="text: $data"></li>
+                </ul>
             </div>
         </div>
     </div>
     <div class="bottom-text-box">
-        <form>
+        <form id="im-client">
             <div class="row">
                 <div class="col-xs-9">
-                    <input class="form-control " id="msgArea" autocomplete="off" />
+                    <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'onkeyup'" autocomplete="off" />
                 </div>
                 <div class="col-xs-2">
                     <button class="btn btn-primary" type="submit">Send</button>
@@ -56,9 +59,13 @@
             </div>
         </form>
     </div>
+
+    <!-- library dependencies. socket io + knockout = awesome-->
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+
     <script src="/cookies.js"></script>
+    <script src="/ChatViewModel.js"></script>
     <script>
         $(function ($) {
             //instantiate the socket. This emits messages to the server
@@ -66,20 +73,23 @@
             var socket = io();
 
             //send a message to the node server
-            $('form').submit(function () {
-                if ($('#msgArea').val().length) {
-                    socket.emit('message-sent', $('#msgArea').val());
-                    $('#msgArea').val('');
-                }
+            $('#im-client').submit(function () {
+                if (!vm.inputboxText() || vm.inputboxText() == "") return false;
+                socket.emit('message-sent', vm.inputboxText());
+                vm.inputboxText('');
                 return false;
             });
 
-            //receive a message from the node server and post it to the dom
+            //receive a message from the node server and push it to our view model
             socket.on('message-received', function (msg) {
-                $('#messages').append($('<li>').addClass('list-group-item').text(msg));
+                vm.messages.push(msg);
                 $("html, body").animate({ scrollTop: $(document).height() }, 250);
             });
         });
+
+        //work the ko magic
+        var vm = new ChatApp.ViewModel();
+        ko.applyBindings(vm);
     </script>
 </body>
 </html>
