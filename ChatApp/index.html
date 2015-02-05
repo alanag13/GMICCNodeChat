@@ -117,6 +117,7 @@
 
             //socket.on('screen-name-rejected', vm.onUserDisconnect)
             socket.on('screen-name-approved', vm.onUserNameCreate);
+            socket.on('screen-name-rejected', vm.onUserNameRejected);
 
         });
 

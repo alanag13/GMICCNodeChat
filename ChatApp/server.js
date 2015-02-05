@@ -30,7 +30,7 @@ io.on('connection', function (socket) {
             users.push(user.toUpperCase());
             displayNames.push(user.sender);
             
-            io.emit('screen-name-approved', user)
+            io.emit('screen-name-approved', user, users.length)
 
         //if it is, tell the user to pick a different one
         } else {
