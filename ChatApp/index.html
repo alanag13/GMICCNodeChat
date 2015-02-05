@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <title>GMI Code Camp Node Chat Demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Bootstrap is cool and VS13 has awesome support for it!-->
+    <!-- Bootstrap is cool and VS13 has awesome intellisense support for it!-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js"></script>
@@ -23,8 +23,13 @@
             margin-bottom: 70px;
         }
 
-         #messages li:nth-child(odd) { background: #eee; }
-         #messages li {overflow-wrap: break-word;}
+            #messages li:nth-child(odd) {
+                background: #eee;
+            }
+
+            #messages li {
+                overflow-wrap: break-word;
+            }
 
         .bottom-text-box {
             z-index: 20;
@@ -42,13 +47,18 @@
         <div class="row">
             <div class="col-xs-12">
                 <ul id="messages" data-bind="foreach: messages" class="list-group">
-                    <li class="list-group-item" data-bind="text: $data"></li>
+                    <li class="list-group-item">
+                        <!-- ko if: sender -->
+                        <strong data-bind="text: sender + ': '"></strong>
+                        <!-- /ko -->
+                        <span data-bind="text: message"></span>
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
-    <div class="bottom-text-box">
-        <form id="im-client">
+    <div class="bottom-text-box" data-bind="visible: currentUserName">
+        <form id="im-client" data-bind="submit: sendMessage">
             <div class="row">
                 <div class="col-xs-9">
                     <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'onkeyup'" autocomplete="off" />
@@ -60,31 +70,60 @@
         </form>
     </div>
 
+    <!-- Bootstrap modal to prompt for screenname-->
+    <div class="modal fade" id="screenNameDialog" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Welcome!</h4>
+                </div>
+                <form data-bind="submit: submitUserName">
+                    <div class="modal-body">
+
+                        <div class="form-group">
+                            <label for="screenname-input" class="control-label">Choose a screenname (be polite).</label>
+                            <input type="text" class="form-control" id="screenname-input">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">I'm Ready!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- end modal-->
     <!-- library dependencies. socket io + knockout = awesome-->
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
-    <script src="/cookies.js"></script>
     <script src="/ChatViewModel.js"></script>
     <script>
-        $(function ($) {
-            //instantiate the socket. This emits messages to the server
-            //and listens for events emited by it.
-            var socket = io();
 
-            //send a message to the node server
-            $('#im-client').submit(function () {
-                if (!vm.inputboxText() || vm.inputboxText() == "") return false;
-                socket.emit('message-sent', vm.inputboxText());
-                vm.inputboxText('');
-                return false;
-            });
+        //instantiate the socket. This emits messages to the server
+        //and listens for events emited by it.
+        var socket = io();
+
+        $(function ($) {
 
             //receive a message from the node server and push it to our view model
             socket.on('message-received', function (msg) {
                 vm.messages.push(msg);
+                //scroll to the bottom after getting a new message
                 $("html, body").animate({ scrollTop: $(document).height() }, 250);
             });
+
+
+            //socket.on('screen-name-rejected', vm.onUserDisconnect)
+            socket.on('screen-name-approved', vm.onUserNameCreate);
+
+        });
+
+        //open dialog to choose username
+        $("#screenNameDialog").modal({
+            backdrop: 'static',
+            keyboard: false
         });
 
         //work the ko magic
