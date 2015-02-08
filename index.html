@@ -107,24 +107,18 @@
 
         $(function ($) {
 
-            //receive a message from the node server and push it to our view model
-            socket.on('message-received', function (msg) {
-                vm.messages.push(msg);
-                //scroll to the bottom after getting a new message
-                $("html, body").animate({ scrollTop: $(document).height() }, 250);
-            });
-
-
-            //socket.on('screen-name-rejected', vm.onUserDisconnect)
+            //listen for and act upon events coming from the node server
+            socket.on('message-received', vm.onMessageReceived);
             socket.on('screen-name-approved', vm.onUserNameCreate);
             socket.on('screen-name-rejected', vm.onUserNameRejected);
+            socket.on('user-logged-off', vm.onUserDisconnect);
 
-        });
+            //open dialog to choose username
+            $("#screenNameDialog").modal({
+                backdrop: 'static',
+                keyboard: false
+            });
 
-        //open dialog to choose username
-        $("#screenNameDialog").modal({
-            backdrop: 'static',
-            keyboard: false
         });
 
         //work the ko magic
