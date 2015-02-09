@@ -3,9 +3,12 @@ ChatApp.ViewModel = function () {
 
     var messages = ko.observableArray([]);
     var userCount = ko.observable(0);
+    var numUsersTyping = ko.observable(0);
     var inputboxText = ko.observable();
     var currentUserName = ko.observable();
     var submittedUserName;
+    var isTyping = ko.observable(false);
+    var lastKeypress = 0;
 
 
     var submitUserName = function (){
@@ -34,6 +37,32 @@ ChatApp.ViewModel = function () {
             $('#screenNameDialog').modal('hide');
         }    
     }
+
+    var onStartTyping = function(){
+
+         var currTime = new Date().getTime();
+         timeSinceLastPress = currTime - lastKeypress;
+         lastKeypress = currTime;
+
+        if(! isTyping()){
+           socket.emit('user-typing-status-update', true); 
+        }
+        var lastKeypressBeforeTimeoutStart = lastKeypress;
+
+            setTimeout(function(){
+                if (lastKeypress == lastKeypressBeforeTimeoutStart){
+                    isTyping(false);
+                    socket.emit('user-typing-status-update', false); }
+                }, 650);
+
+       isTyping(true);
+       return true;
+ 
+    }
+
+    var onNumUsersTypingChange = function (user, count){
+        numUsersTyping(count);
+    }
     
     var sendMessage = function (){
         if (!inputboxText() || inputboxText().trim() == "") return false;
@@ -61,10 +90,14 @@ ChatApp.ViewModel = function () {
     return {
         messages : messages,
         userCount : userCount,
+        isTyping : isTyping,
+        numUsersTyping: numUsersTyping,
         inputboxText : inputboxText,
         currentUserName : currentUserName,
         submitUserName : submitUserName,
         onUserNameCreate : onUserNameCreate,
+        onStartTyping : onStartTyping,
+        onNumUsersTypingChange : onNumUsersTypingChange,
         onUserNameReject : onUserNameReject,
         sendMessage : sendMessage,
         onMessageReceived : onMessageReceived,

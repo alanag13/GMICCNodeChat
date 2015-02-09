@@ -15,6 +15,11 @@ app.get('/*', function (req, res) {
     res.sendFile(__dirname + req.url)
 });
 
+var getUserIndex = function(id){
+    return _.findIndex(users, function(userIn){
+        return userIn.id == id;
+    });
+}
 
 io.on('connection', function (socket) {
 
@@ -24,13 +29,14 @@ io.on('connection', function (socket) {
          var self = this;
 
         //check to see if a username is already taken, or if this user already sumbitted a username
-         var userNameExists = _.find(users, function(userIn){
-            return userIn.username == user.toUpperCase();
+         var userExists = _.find(users, function(userIn){
+            return (userIn.username == user.toUpperCase() || userIn.id == this.id);
          });
 
-        if (!users[self.id] && !userNameExists) {
-            users.push({username : user.toUpperCase(), displayText : user, id : self.id});
-            
+        if (!userExists) {
+            users.push({username : user.toUpperCase(), displayText : user, id : self.id, typing : false});
+
+
         //every time someone connects, set it up so that
         //every time they send a message, we tell all connected clients
         //that we recieved it (and what it was)
@@ -38,17 +44,35 @@ io.on('connection', function (socket) {
             io.emit('message-received', msg);
         });
 
-        self.on('disconnect', function(){
-            //sign the user off
-            var user = _.find(users, function(userIn){
-                return userIn.id == self.id;
-            });
+        //when as user starts or stops typing, broadcast
+        //the change in number of users typing to everyone connected
+        self.on('user-typing-status-update', function(isTyping){
 
+            var currentUserIdx = getUserIndex(self.id);
+
+            if(isTyping && currentUserIdx != -1){
+                users[currentUserIdx].typing = true;
+            }else if (!isTyping && currentUserIdx != -1){
+                users[currentUserIdx].typing = false;   
+            }
+
+            var typingUsers = _.where(users, { typing : true });
+
+            var numberTyping = 0;
+            if (typingUsers.length){
+                numberTyping = typingUsers.length;
+            }
+
+            io.emit('set-number-typing-users', users[currentUserIdx].displayText, numberTyping);
+        });
+
+        self.on('disconnect', function(){
+            var currentUserIdx = getUserIndex(self.id);
+            io.emit('user-logged-off', users[currentUserIdx].displayText, users.length);
+            //sign the user off
             _.remove(users, function(userIn){
                 return userIn.id == self.id;
             });
-
-            io.emit('user-logged-off', user.displayText, users.length);
         });
             
             io.emit('screen-name-approved', user, users.length)
@@ -59,9 +83,6 @@ io.on('connection', function (socket) {
         }
     });
 });
-
-
-
 
 
 http.listen(process.env.PORT || 1337, function () {

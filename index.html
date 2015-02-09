@@ -10,36 +10,41 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js"></script>
     <style>
-        html, body {
-            height: 100%;
-        }
+    html, body {
+        height: 100%;
+    }
 
-            body .container {
-                min-height: 100%;
-                margin-bottom: -50px;
-            }
+    body .container {
+        min-height: 100%;
+        margin-bottom: -50px;
+    }
 
-        #messages {
-            margin-bottom: 70px;
-        }
+    #messages {
+        margin-bottom: 70px;
+    }
 
-            #messages li:nth-child(odd) {
-                background: #eee;
-            }
+    #messages li:nth-child(odd) {
+        background: #eee;
+    }
 
-            #messages li {
-                overflow-wrap: break-word;
-            }
+    #messages li {
+        overflow-wrap: break-word;
+    }
 
-        .bottom-text-box {
-            z-index: 20;
-            position: fixed;
-            bottom: 0;
-            height: 75px;
-            padding: 20px;
-            background: #000;
-            width: 100%;
-        }
+    .chat-status-bar {
+        color: #fff;
+        width: 100%;
+    }
+
+    .bottom-text-box {
+        z-index: 20;
+        position: fixed;
+        bottom: 0;
+        height: 75px;
+        padding: 20px;
+        background: #000;
+        width: 100%;
+    }
     </style>
 </head>
 <body>
@@ -58,49 +63,58 @@
         </div>
     </div>
     <div class="bottom-text-box" data-bind="visible: currentUserName">
-        <form id="im-client" data-bind="submit: sendMessage">
-            <div class="row">
-                <div class="col-xs-9">
-                    <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'onkeyup'" autocomplete="off" />
-                </div>
-                <div class="col-xs-2">
-                    <button class="btn btn-primary" type="submit">Send</button>
-                </div>
+        <div class="chat-status-bar">
+          <div class="row">
+            <div class="col-xs-9">
+                <span data-bind="visible: numUsersTyping, text: numUsersTyping() + ' users are typing...'"></span>
             </div>
-        </form>
+            <div class="col-xs-2">
+                <span class="pull-right"></span>
+            </div>
+        </div>  
     </div>
-
-    <!-- Bootstrap modal to prompt for screenname-->
-    <div class="modal fade" id="screenNameDialog" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Welcome!</h4>
-                </div>
-                <form data-bind="submit: submitUserName">
-                    <div class="modal-body">
-
-                        <div class="form-group">
-                            <label for="screenname-input" class="control-label">Choose a screenname (be polite).</label>
-                            <input type="text" class="form-control" id="screenname-input">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">I'm Ready!</button>
-                    </div>
-                </form>
+    <form id="im-client" data-bind="submit: sendMessage">
+        <div class="row">
+            <div class="col-xs-9">
+                <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'keypress', event: { keypress: onStartTyping}" autocomplete="off" />
+            </div>
+            <div class="col-xs-2">
+                <button class="btn btn-primary" type="submit">Send</button>
             </div>
         </div>
+    </form>
+</div>
+
+<!-- Bootstrap modal to prompt for screenname-->
+<div class="modal fade" id="screenNameDialog" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Welcome!</h4>
+            </div>
+            <form data-bind="submit: submitUserName">
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label for="screenname-input" class="control-label">Choose a screenname (be polite).</label>
+                        <input type="text" class="form-control" id="screenname-input">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">I'm Ready!</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <!-- end modal-->
-    <!-- library dependencies. socket io + knockout = awesome-->
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+</div>
+<!-- end modal-->
+<!-- library dependencies. socket io + knockout = awesome-->
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
-    <script src="/ChatViewModel.js"></script>
-    <script>
-
+<script src="/ChatViewModel.js"></script>
+<script>
         //instantiate the socket. This emits messages to the server
         //and listens for events emited by it.
         var socket = io();
@@ -111,6 +125,7 @@
             socket.on('message-received', vm.onMessageReceived);
             socket.on('screen-name-approved', vm.onUserNameCreate);
             socket.on('screen-name-rejected', vm.onUserNameRejected);
+            socket.on('set-number-typing-users', vm.onNumUsersTypingChange);
             socket.on('user-logged-off', vm.onUserDisconnect);
 
             //open dialog to choose username
@@ -118,12 +133,11 @@
                 backdrop: 'static',
                 keyboard: false
             });
-
         });
 
         //work the ko magic
         var vm = new ChatApp.ViewModel();
         ko.applyBindings(vm);
-    </script>
+</script>
 </body>
 </html>
