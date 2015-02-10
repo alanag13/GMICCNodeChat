@@ -23,21 +23,22 @@ ChatApp.ViewModel = function () {
         }
     }
 
+    //only close the dialog and set the screenname if this newly arriving user is
+    //the person who just made a screenname, otherwise this will close the dialog for
+    //people in the middle of making screennames.
     var onUserNameCreate = function (user, count) {
-        //if the user name wasn't already taken let the user start chatting
-        //also announces the arrival of new users
         userCount(count);
         messages.push({ sender: "", message : '********** ' + user + ' joined the chat. ********** ' });
         
-        //only close the dialog and set the screenname if this newly arriving user is
-        //the person who just made a screenname, otherwise this will close the dialog for
-        //people in the middle of making screennames.
         if (user == submittedUserName) {
             currentUserName(user);
             $('#screenNameDialog').modal('hide');
         }    
     }
 
+    //tell node that a user has started typing.
+    //if after a short amount of time another key isn't pressed,
+    //tell node the user has stopped typing.    
     var onStartTyping = function(){
 
          var currTime = new Date().getTime();
@@ -77,7 +78,6 @@ ChatApp.ViewModel = function () {
         //scroll to the bottom after getting a new message
         $("html, body").animate({ scrollTop: $(document).height() }, 250);
     }
-
 
     var onUserNameReject = function (user) {
         //try a different name
