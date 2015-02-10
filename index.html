@@ -76,7 +76,7 @@
     <form id="im-client" data-bind="submit: sendMessage">
         <div class="row">
             <div class="col-xs-9">
-                <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'keypress', event: { keypress: onStartTyping}" autocomplete="off" />
+                <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'input', event: { input: onStartTyping}" autocomplete="off" />
             </div>
             <div class="col-xs-2">
                 <button class="btn btn-primary" type="submit">Send</button>
