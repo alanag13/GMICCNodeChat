@@ -68,11 +68,14 @@ io.on('connection', function (socket) {
 
         self.on('disconnect', function(){
             var currentUserIdx = getUserIndex(self.id);
-            io.emit('user-logged-off', users[currentUserIdx].displayText, users.length);
+            var userName = users[currentUserIdx].displayText;
             //sign the user off
             _.remove(users, function(userIn){
                 return userIn.id == self.id;
             });
+
+            io.emit('user-logged-off', userName, users.length);
+
         });
             
             io.emit('screen-name-approved', user, users.length)
