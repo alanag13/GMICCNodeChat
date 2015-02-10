@@ -34,6 +34,7 @@
     .chat-status-bar {
         color: #fff;
         width: 100%;
+        height: 20px;
     }
 
     .bottom-text-box {
@@ -41,7 +42,7 @@
         position: fixed;
         bottom: 0;
         height: 75px;
-        padding: 20px;
+        padding: 0 20px;
         background: #000;
         width: 100%;
     }
@@ -79,7 +80,7 @@
                 <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'input', event: { input: onStartTyping}" autocomplete="off" />
             </div>
             <div class="col-xs-2">
-                <button class="btn btn-primary" type="submit">Send</button>
+                <button class="btn btn-primary" type="button" data-bind="click: sendMessage">Send</button>
             </div>
         </div>
     </form>

@@ -68,6 +68,7 @@ ChatApp.ViewModel = function () {
         if (!inputboxText() || inputboxText().trim() == "") return false;
         socket.emit('message-sent', { sender: currentUserName(), message : inputboxText().trim() });
         inputboxText('');
+        $('#msgArea').focus();
         return false;
     }
 
