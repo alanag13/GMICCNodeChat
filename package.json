@@ -2,7 +2,7 @@
   "name": "ChatApp",
   "version": "0.0.1",
   "description": "ChatApp",
-  "main": "server.js",
+  "main": "nodeMain.js",
   "author": {
     "name": "AlanGrgic",
     "email": "alan.grgic@gmail.com"

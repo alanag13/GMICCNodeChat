@@ -11,7 +11,7 @@ html, body {
         margin-bottom: 70px;
     }
 
-    #messages li:nth-child(odd) {
+    #messages li.keyed:nth-child(odd) {
         background: #eee;
     }
 

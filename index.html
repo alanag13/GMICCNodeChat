@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -8,7 +8,7 @@
     <!-- Bootstrap is cool and VS13 has awesome intellisense support for it!-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css"/>
-    <link rel="stylesheet" href="/styles.css"/>
+    <link rel="stylesheet" href="/client/styles.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js"></script>
 </head>
 <body>
@@ -16,10 +16,9 @@
         <div class="row">
             <div class="col-xs-12">
                 <ul id="messages" data-bind="foreach: messages" class="list-group">
-                    <li class="list-group-item">
-                        <!-- ko if: sender -->
-                        <strong data-bind="text: sender + ': '"></strong>
-                        <!-- /ko -->
+                    <li class="list-group-item" data-bind="css: { 'list-group-item-success': type == 'join',
+                     'keyed': type == 'keyed', 'list-group-item-info': type == 'info'}">
+                        <strong data-bind="text: from + ((type == 'keyed') ? ': ' : '')"></strong>
                         <span data-bind="text: message"></span>
                     </li>
                 </ul>
@@ -37,13 +36,13 @@
             </div>
         </div>  
     </div>
-    <form id="im-client" data-bind="submit: sendMessage">
+    <form id="im-client" data-bind="submit: function(){ sendMessage($('#msgArea').focus()); }">
         <div class="row">
             <div class="col-xs-9">
                 <input class="form-control" id="msgArea" data-bind="value: inputboxText, valueUpdate : 'input', event: { input: onStartTyping}" autocomplete="off" />
             </div>
             <div class="col-xs-2">
-                <button class="btn btn-primary" type="button" data-bind="click: sendMessage">Send</button>
+                <button class="btn btn-primary" type="submit">Send</button>
             </div>
         </div>
     </form>
@@ -56,12 +55,12 @@
             <div class="modal-header">
                 <h4 class="modal-title">Welcome!</h4>
             </div>
-            <form data-bind="submit: submitUserName">
+            <form data-bind="submit: submitUsername">
                 <div class="modal-body">
 
                     <div class="form-group">
                         <label for="screenname-input" class="control-label">Choose a screenname (be polite).</label>
-                        <input type="text" class="form-control" id="screenname-input">
+                        <input type="text" class="form-control" id="screenname-input" autocomplete="off" data-bind="value: proposedUsername">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -77,31 +76,45 @@
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
-<script src="/ChatViewModel.js"></script>
+<script src="/client/ChatViewModel.js"></script>
 <script>
         //instantiate the socket. This emits messages to the server
         //and listens for events emited by it.
         var socket = io();
 
+        //work the ko magic
+        var vm = new ChatApp.ViewModel(ko, socket);
+        ko.applyBindings(vm);
+        
+        //scroll to the bottom after getting a new message
+        socket.on('message-received', function(msg){
+            vm.serverEvents.onMessageReceived(msg, function(){
+                $('html, body').animate({ scrollTop: $(document).height() }, 250);
+            });
+        });
+
+       //close the dialog for this user if created successfully
+       socket.on('screen-name-approved', function(usr, count, msg){
+        vm.serverEvents.onUsernameCreate(usr, count, msg, function(){
+            if (usr == vm.proposedUsername()) {
+                vm.currentUserName(usr);
+                $('#screenNameDialog').modal('hide');
+            }
+        });
+    });
+
+       socket.on('screen-name-rejected', vm.serverEvents.onUsernameRejected);
+       socket.on('set-number-typing-users', vm.serverEvents.onNumUsersTypingChange);
+       socket.on('user-logged-off', vm.serverEvents.onUserDisconnect);
+
+
         $(function ($) {
-
-            //listen for and act upon events coming from the node server
-            socket.on('message-received', vm.onMessageReceived);
-            socket.on('screen-name-approved', vm.onUserNameCreate);
-            socket.on('screen-name-rejected', vm.onUserNameRejected);
-            socket.on('set-number-typing-users', vm.onNumUsersTypingChange);
-            socket.on('user-logged-off', vm.onUserDisconnect);
-
             //open dialog to choose username
             $("#screenNameDialog").modal({
                 backdrop: 'static',
                 keyboard: false
             });
         });
-
-        //work the ko magic
-        var vm = new ChatApp.ViewModel();
-        ko.applyBindings(vm);
 </script>
 </body>
 </html>
