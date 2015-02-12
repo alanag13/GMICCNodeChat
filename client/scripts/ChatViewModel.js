@@ -59,7 +59,9 @@ ChatApp.ViewModel = ChatApp.ViewModel || function (ko, socket) {
     }
 
 var serverEvents = {
-
+    //only close the dialog and set the screenname if this newly arriving user is
+    //the person who just made a screenname, otherwise this will close the dialog for
+    //people in the middle of making screennames.
          onUsernameCreate : function (user, count, msg, callback) {
             userCount(count);
             messages.push(msg);
